@@ -1,0 +1,571 @@
+.app {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  font-family: Arial, sans-serif;
+}
+
+.sidebar {
+  width: 240px;
+  background-color: #172033;
+  color: rgb(246, 239, 239);
+  padding: 30px 20px;
+}
+
+.sidebar h2 {
+  margin-bottom: 5px;
+}
+
+.tagline {
+  color: #bbc7db;
+  font-size: 14px;
+  margin-bottom: 40px;
+}
+
+nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+nav button {
+  background: transparent;
+  border: none;
+  color: rgb(255, 255, 255);
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+nav button:hover {
+  background-color: #27334a;
+  border-radius: 6px;
+}
+
+.main-content {
+  flex: 1;
+  padding: 40px;
+  background-color: #3e7c3a;
+  color: #000103;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #2e4d79;
+}
+
+.card p {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 15px 0 0;
+}
+.student-table-container {
+  margin-top: 30px;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.student-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.student-table th {
+  background-color: #172033;
+  color: rgb(252, 251, 251);
+  text-align: left;
+  padding: 15px;
+}
+
+.student-table td {
+  padding: 15px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.student-table tr:hover {
+  background-color: #f8fafc;
+}
+
+.risk-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.risk-badge.high {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.risk-badge.medium {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.risk-badge.low {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clickable-row:hover {
+  background-color: #f1f5f9;
+}
+
+.back-button {
+  border: none;
+  background: #172033;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 25px;
+  font-size: 14px;
+}
+
+.student-subtitle {
+  color: #64748b;
+  margin-bottom: 25px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.detail-card {
+  background: white;
+  padding: 22px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-card span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.detail-card strong {
+  font-size: 24px;
+  color: #1e293b;
+}
+
+.risk-text.high {
+  color: #dc2626;
+}
+
+.risk-text.medium {
+  color: #d97706;
+}
+
+.risk-text.low {
+  color: #16a34a;
+}
+
+.risk-reasons {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.risk-reasons h2 {
+  margin-top: 0;
+}
+
+.risk-reasons p {
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.positive-message {
+  color: #15803d;
+}
+/* RISK ANALYSIS */
+.risk-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.risk-summary-card {
+  background: white;
+  padding: 22px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.risk-summary-card h3 {
+  margin-top: 0;
+}
+
+.risk-summary-card p {
+  font-size: 28px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.risk-summary-card span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.high-summary {
+  border-top: 4px solid #dc2626;
+}
+
+.medium-summary {
+  border-top: 4px solid #d97706;
+}
+
+.low-summary {
+  border-top: 4px solid #16a34a;
+}
+
+.risk-section {
+  margin-top: 35px;
+}
+
+.risk-section h2 {
+  font-size: 20px;
+  margin-bottom: 18px;
+}
+
+.risk-student-card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  border-left: 5px solid #dc2626;
+}
+
+.medium-risk-card {
+  border-left-color: #d97706;
+}
+
+.low-risk-card {
+  border-left-color: #16a34a;
+}
+
+.risk-student-card h3 {
+  margin: 0 0 5px;
+}
+
+.risk-student-card p {
+  margin: 0;
+  color: #64748b;
+}
+
+.risk-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+}
+
+.risk-indicators span {
+  background: #f1f5f9;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.view-student-button {
+  border: none;
+  background: #172033;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.view-student-button:hover {
+  opacity: 0.9;
+}
+/* ================================
+   INTERVENTIONS PAGE
+================================ */
+
+.intervention-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.summary-card {
+  background: rgb(252, 251, 251);
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.summary-card h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.summary-card p {
+  margin: 0;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.summary-card.pending {
+  border-top: 4px solid #d97706;
+}
+
+.summary-card.progress {
+  border-top: 4px solid #2563eb;
+}
+
+.summary-card.completed {
+  border-top: 4px solid #16a34a;
+}
+
+.intervention-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.intervention-card {
+  background: rgb(213, 179, 245);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+.intervention-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.intervention-header h2 {
+  margin: 0 0 6px;
+}
+
+.intervention-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.intervention-content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 30px;
+  padding-top: 20px;
+  align-items: center;
+}
+
+.intervention-content h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.intervention-content ul {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.intervention-content li {
+  margin-bottom: 8px;
+  color: #475569;
+}
+
+.intervention-status {
+  text-align: center;
+  min-width: 180px;
+}
+
+.intervention-status p {
+  margin-bottom: 15px;
+}
+
+.intervention-status button {
+  background: #1e293b;
+  color: rgb(249, 246, 246);
+  border: none;
+  padding: 10px 18px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.intervention-status button:hover {
+  opacity: 0.9;
+}
+
+.intervention-status button:disabled {
+  background: #16a34a;
+  cursor: default;
+}
+
+/* STUDENT SEARCH AND FILTERS */
+
+.student-controls {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+  margin-bottom: 20px;
+}
+
+.student-search,
+.risk-filter {
+  border: 1px solid #b8c0cb;
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: 15px;
+  background: rgb(97, 27, 27);
+}
+
+.student-search {
+  flex: 1;
+}
+
+.risk-filter {
+  min-width: 180px;
+  cursor: pointer;
+}
+
+.student-search:focus,
+.risk-filter:focus {
+  outline: none;
+  border-color: #02143a;
+}
+
+/* EDIT STUDENT FEATURE */
+
+.edit-student-btn {
+  background-color: #172033;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.edit-student-btn:hover {
+  opacity: 0.85;
+}
+
+.edit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.edit-modal {
+  background: white;
+  width: 420px;
+  max-width: 90%;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+}
+
+.edit-modal h2 {
+  margin-top: 0;
+  color: #172033;
+}
+
+.edit-student-info {
+  color: #64748b;
+  margin-bottom: 25px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 7px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.form-group input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+.edit-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.cancel-btn,
+.save-btn {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.cancel-btn {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.save-btn {
+  background: #172033;
+  color: white;
+}
