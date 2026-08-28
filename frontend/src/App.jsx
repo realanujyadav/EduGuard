@@ -3,40 +3,7 @@ import "./App.css";
 
 
 function getRiskLevel(student) {
-  let riskScore = 0;
-
-  // Attendance risk
-  if (student.attendance < 60) {
-    riskScore += 40;
-  } else if (student.attendance < 75) {
-    riskScore += 20;
-  }
-
-  // Academic performance risk
-  if (student.assessmentScore < 50) {
-    riskScore += 30;
-  } else if (student.assessmentScore < 65) {
-    riskScore += 15;
-  }
-
-  // Performance decline risk
-  if (student.assessmentScore < student.previousScore - 10) {
-    riskScore += 15;
-  }
-
-  // Missing assignments risk
-  riskScore += student.missingAssignments * 5;
-
-  // Engagement risk
-  if (student.engagement === "Low") {
-    riskScore += 15;
-  } else if (student.engagement === "Medium") {
-    riskScore += 5;
-  }
-
-  if (riskScore >= 50) return "High";
-  if (riskScore >= 25) return "Medium";
-  return "Low";
+  return student.riskLevel || "Low";
 }
 
 function getInterventionSuggestions(student) {
@@ -79,16 +46,27 @@ function App() {
   const [students, setStudents] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5001/api/interventions")
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Fetched interventions:", data);
-        setInterventions(data);
-      })
-      .catch((error) => {
-        console.error("Error fetching interventions:", error);
-      });
+    fetchInterventions();
   }, []);
+
+  const fetchInterventions = async () => {
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:5001/api/interventions"
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch interventions");
+      }
+
+      const data = await response.json();
+
+      console.log("Fetched interventions:", data);
+      setInterventions(data);
+    } catch (error) {
+      console.error("Error fetching interventions:", error);
+    }
+  };
 
   useEffect(() => {
     fetch("http://127.0.0.1:5001/api/students")
@@ -102,12 +80,6 @@ function App() {
       });
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(
-      "eduguardInterventions",
-      JSON.stringify(interventions)
-    );
-  }, [interventions]);
 
   // Add calculated risk level to every student
   const studentsWithRisk = students.map((student) => ({
@@ -146,7 +118,7 @@ function App() {
     const response = await fetch(
       `http://127.0.0.1:5001/api/interventions/${studentId}`,
       {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
@@ -790,6 +762,10 @@ function App() {
                     : student
                 )
               );
+
+              // Refresh interventions because the student's updated
+              // risk level may have created a new intervention
+              await fetchInterventions();
 
               if (
                 selectedStudent &&

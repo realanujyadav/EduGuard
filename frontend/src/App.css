@@ -46,8 +46,8 @@ nav button:hover {
 .main-content {
   flex: 1;
   padding: 40px;
-  background-color: #3e7c3a;
-  color: #000103;
+  background-color: #F5F7FA;
+  color: #172033;
 }
 
 .dashboard-cards {
@@ -371,10 +371,11 @@ nav button:hover {
 }
 
 .intervention-card {
-  background: rgb(213, 179, 245);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
   text-align: left;
 }
 
@@ -457,11 +458,12 @@ nav button:hover {
 
 .student-search,
 .risk-filter {
-  border: 1px solid #b8c0cb;
+  border: 1px solid #CBD5E1;
   border-radius: 8px;
   padding: 11px 14px;
   font-size: 15px;
-  background: rgb(97, 27, 27);
+  background: #FFFFFF;
+  color: #172033;
 }
 
 .student-search {
