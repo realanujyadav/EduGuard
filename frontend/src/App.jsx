@@ -67,29 +67,28 @@ function getInterventionSuggestions(student) {
   return suggestions;
 }
 
-function updateInterventionStatus(studentId, status, setInterventions) {
-  setInterventions((previous) => ({
-    ...previous,
-    [studentId]: status,
-  }));
-}
-
 function App() {
   const [activePage, setActivePage] = useState("Dashboard");
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [interventions, setInterventions] = useState(() => {
-  const savedInterventions = localStorage.getItem("eduguardInterventions");
-
-    return savedInterventions
-      ? JSON.parse(savedInterventions)
-      : {};
-  });
+  const [interventions, setInterventions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [riskFilter, setRiskFilter] = useState("All");
 
   const [editingStudent, setEditingStudent] = useState(null);
 
   const [students, setStudents] = useState([]);
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:5001/api/interventions")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Fetched interventions:", data);
+        setInterventions(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching interventions:", error);
+      });
+  }, []);
 
   useEffect(() => {
     fetch("http://127.0.0.1:5001/api/students")
@@ -141,6 +140,42 @@ function App() {
   const lowRisk = studentsWithRisk.filter(
     (student) => student.riskLevel === "Low"
   ).length;
+
+  const updateInterventionStatus = async (studentId, newStatus) => {
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:5001/api/interventions/${studentId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: newStatus,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to update intervention");
+    }
+
+    const data = await response.json();
+
+    console.log("Intervention updated:", data);
+
+    setInterventions((currentInterventions) =>
+      currentInterventions.map((intervention) =>
+        intervention.studentId === studentId
+          ? { ...intervention, status: newStatus }
+          : intervention
+      )
+    );
+  } catch (error) {
+    console.error("Error updating intervention:", error);
+    alert("Unable to update intervention. Please try again.");
+  }
+};
 
   return (
     <div className="app">
@@ -531,19 +566,19 @@ function App() {
         {activePage === "Interventions" && (
   <div className="page">
     <h1>Interventions</h1>
+
     <p className="page-description">
       Track and manage support actions for students requiring academic attention.
     </p>
 
+    {/* Summary Cards */}
     <div className="intervention-summary">
       <div className="summary-card pending">
         <h3>Pending</h3>
         <p>
           {
-            students.filter(
-              (student) =>
-                getRiskLevel(student) !== "Low" &&
-                !interventions[student.id]
+            interventions.filter(
+              (intervention) => intervention.status === "Pending"
             ).length
           }
         </p>
@@ -553,8 +588,8 @@ function App() {
         <h3>In Progress</h3>
         <p>
           {
-            Object.values(interventions).filter(
-              (status) => status === "In Progress"
+            interventions.filter(
+              (intervention) => intervention.status === "In Progress"
             ).length
           }
         </p>
@@ -564,90 +599,83 @@ function App() {
         <h3>Completed</h3>
         <p>
           {
-            Object.values(interventions).filter(
-              (status) => status === "Completed"
+            interventions.filter(
+              (intervention) => intervention.status === "Completed"
             ).length
           }
         </p>
       </div>
     </div>
 
+    {/* Intervention Cards */}
     <div className="intervention-list">
-      {students
-        .filter((student) => getRiskLevel(student) !== "Low")
-        .map((student) => {
-          const status = interventions[student.id] || "Pending";
-          const suggestions = getInterventionSuggestions(student);
-
-          return (
-            <div className="intervention-card" key={student.id}>
-              <div className="intervention-header">
-                <div>
-                  <h2>{student.name}</h2>
-                  <p>
-                    {student.rollNumber} • {student.branch}
-                  </p>
-                </div>
-
-                <span
-                  className={`risk-badge ${getRiskLevel(student).toLowerCase()}`}
-                >
-                  {getRiskLevel(student)} Risk
-                </span>
+      {interventions.map((intervention) => {
+        return (
+          <div
+            className="intervention-card"
+            key={intervention.studentId}
+          >
+            <div className="intervention-header">
+              <div>
+                <h2>{intervention.name}</h2>
+                <p>
+                  {intervention.rollNumber} • {intervention.branch}
+                </p>
               </div>
 
-              <div className="intervention-content">
-                <div>
-                  <h4>Recommended Actions</h4>
+              <span
+                className={`risk-badge ${intervention.riskLevel.toLowerCase()}`}
+              >
+                {intervention.riskLevel} Risk
+              </span>
+            </div>
 
-                  <ul>
-                    {suggestions.map((suggestion, index) => (
-                      <li key={index}>{suggestion}</li>
-                    ))}
-                  </ul>
-                </div>
+            <div className="intervention-content">
+              <div>
+                <h4>Recommended Actions</h4>
 
-                <div className="intervention-status">
-                  <p>
-                    Status: <strong>{status}</strong>
-                  </p>
-
-                  {status === "Pending" && (
-                    <button
-                      onClick={() =>
-                        updateInterventionStatus(
-                          student.id,
-                          "In Progress",
-                          setInterventions
-                        )
-                      }
-                    >
-                      Start Intervention
-                    </button>
+                <ul>
+                  {intervention.recommendations.map(
+                    (recommendation, index) => (
+                      <li key={index}>{recommendation}</li>
+                    )
                   )}
+                </ul>
+              </div>
 
-                  {status === "In Progress" && (
-                    <button
-                      onClick={() =>
-                        updateInterventionStatus(
-                          student.id,
-                          "Completed",
-                          setInterventions
-                        )
-                      }
-                    >
-                      Mark Completed
-                    </button>
-                  )}
+              <div className="intervention-status">
+                <p>
+                  Status: <strong>{intervention.status}</strong>
+                </p>
 
-                  {status === "Completed" && (
-                    <button disabled>Completed ✓</button>
-                  )}
-                </div>
+                {intervention.status === "Pending" && (
+                  <button
+                    onClick={() =>
+                      updateInterventionStatus(intervention.studentId, "In Progress")
+                    }
+                  >
+                    Start Intervention
+                  </button>
+                )}
+
+                {intervention.status === "In Progress" && (
+                  <button
+                    onClick={() =>
+                      updateInterventionStatus(intervention.studentId, "Completed")
+                    }
+                  >
+                    Mark Completed
+                  </button>
+                )}
+
+                {intervention.status === "Completed" && (
+                  <button disabled>Completed ✓</button>
+                )}
               </div>
             </div>
-          );
-        })}
+          </div>
+        );
+      })}
     </div>
   </div>
 )}
@@ -734,23 +762,47 @@ function App() {
 
         <button
           className="save-btn"
-          onClick={() => {
-            const updatedStudents = students.map((student) =>
-              student.id === editingStudent.id
-                ? editingStudent
-                : student
-            );
+          onClick={async () => {
+            try {
+              const response = await fetch(
+                `http://127.0.0.1:5001/api/students/${editingStudent.id}`,
+                {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(editingStudent),
+                }
+              );
 
-            setStudentData(updatedStudents);
+              if (!response.ok) {
+                throw new Error("Failed to update student");
+              }
 
-            if (
-              selectedStudent &&
-              selectedStudent.id === editingStudent.id
-            ) {
-              setSelectedStudent(editingStudent);
+              const updatedStudent = await response.json();
+
+              console.log("Student updated:", updatedStudent);
+
+              setStudents((currentStudents) =>
+                currentStudents.map((student) =>
+                  student.id === updatedStudent.id
+                    ? updatedStudent
+                    : student
+                )
+              );
+
+              if (
+                selectedStudent &&
+                selectedStudent.id === updatedStudent.id
+              ) {
+                setSelectedStudent(updatedStudent);
+              }
+
+              setEditingStudent(null);
+            } catch (error) {
+              console.error("Error updating student:", error);
+              alert("Unable to save student changes. Please try again.");
             }
-
-            setEditingStudent(null);
           }}
         >
           Save Changes
