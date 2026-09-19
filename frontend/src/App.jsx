@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import "./App.css";
 
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5001";
+
+
 function getRiskLevel(student) {
   return student.riskLevel || "Low";
 }
@@ -22,9 +25,7 @@ function getInterventionSuggestions(student) {
   }
 
   if (student.missingAssignments > 0) {
-    suggestions.push(
-      `Follow up on ${student.missingAssignments} missing assignment(s)`
-    );
+    suggestions.push("Follow up on ${student.missingAssignments} missing assignment(s)");
   }
 
   if (student.engagement === "Low") {
@@ -52,7 +53,7 @@ function App() {
   const fetchInterventions = async () => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:5001/api/interventions"
+        `${API_URL}/api/interventions`
       );
 
       if (!response.ok) {
@@ -69,7 +70,7 @@ function App() {
   };
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5001/api/students")
+    fetch(`${API_URL}/api/students`)
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetched students:", data);
@@ -116,7 +117,7 @@ function App() {
   const updateInterventionStatus = async (studentId, newStatus) => {
   try {
     const response = await fetch(
-      `http://127.0.0.1:5001/api/interventions/${studentId}`,
+      `${API_URL}/api/interventions/${studentId}`,
       {
         method: "PATCH",
         headers: {
@@ -737,7 +738,7 @@ function App() {
           onClick={async () => {
             try {
               const response = await fetch(
-                `http://127.0.0.1:5001/api/students/${editingStudent.id}`,
+                `${API_URL}/api/students/${editingStudent.id}`,
                 {
                   method: "PUT",
                   headers: {

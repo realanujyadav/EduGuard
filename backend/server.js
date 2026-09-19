@@ -3,354 +3,36 @@ const cors = require("cors");
 const { Pool } = require("pg");
 require("dotenv").config();
 
+const {
+  calculateRisk,
+  getRecommendations,
+} = require("./services/riskEngine");
+
 const app = express();
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
   })
 );
 
 app.use(express.json());
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
+  connectionString: process.env.DATABASE_URL,
+  ssl:
+    process.env.DB_SSL === "true"
+      ? { rejectUnauthorized: false }
+      : false,
 });
-
-/* =========================================================
-   STUDENT DATA
-   ========================================================= */
-
-let students = [
-  {
-    id: 1,
-    name: "Anuj Yadav",
-    rollNumber: "25223016",
-    branch: "MCA",
-    semester: 3,
-    attendance: 52,
-    assessmentScore: 48,
-    previousScore: 65,
-    missingAssignments: 3,
-    engagement: "Low",
-  },
-  {
-    id: 2,
-    name: "Aryan Pathak",
-    rollNumber: "25223022",
-    branch: "MCA",
-    semester: 3,
-    attendance: 68,
-    assessmentScore: 62,
-    previousScore: 70,
-    missingAssignments: 1,
-    engagement: "Medium",
-  },
-  {
-    id: 3,
-    name: "Ashish Kumar",
-    rollNumber: "25223023",
-    branch: "MCA",
-    semester: 3,
-    attendance: 91,
-    assessmentScore: 88,
-    previousScore: 85,
-    missingAssignments: 0,
-    engagement: "High",
-  },
-  {
-    id: 4,
-    name: "Ratnesh Kumar",
-    rollNumber: "25223077",
-    branch: "MCA",
-    semester: 3,
-    attendance: 58,
-    assessmentScore: 54,
-    previousScore: 72,
-    missingAssignments: 2,
-    engagement: "Low",
-  },
-  {
-    id: 5,
-    name: "Sayan Saha",
-    rollNumber: "25223086",
-    branch: "MCA",
-    semester: 3,
-    attendance: 76,
-    assessmentScore: 71,
-    previousScore: 74,
-    missingAssignments: 1,
-    engagement: "Medium",
-  },
-  {
-    id: 6,
-    name: "Shreya Sahu",
-    rollNumber: "26223087",
-    branch: "MCA",
-    semester: 1,
-    attendance: 45,
-    assessmentScore: 42,
-    previousScore: 68,
-    missingAssignments: 4,
-    engagement: "Low",
-  },
-  {
-    id: 7,
-    name: "Nitish Kumar",
-    rollNumber: "25223066",
-    branch: "MCA",
-    semester: 3,
-    attendance: 85,
-    assessmentScore: 79,
-    previousScore: 76,
-    missingAssignments: 0,
-    engagement: "High",
-  },
-  {
-    id: 8,
-    name: "Harpreet Singh",
-    rollNumber: "25223041",
-    branch: "MCA",
-    semester: 3,
-    attendance: 72,
-    assessmentScore: 58,
-    previousScore: 69,
-    missingAssignments: 2,
-    engagement: "Medium",
-  },
-  {
-    id: 9,
-    name: "Aryan Chitley",
-    rollNumber: "25223021",
-    branch: "MCA",
-    semester: 3,
-    attendance: 64,
-    assessmentScore: 55,
-    previousScore: 73,
-    missingAssignments: 2,
-    engagement: "Low",
-  },
-  {
-    id: 10,
-    name: "Harshvardhan Shrivastava",
-    rollNumber: "25223043",
-    branch: "MCA",
-    semester: 3,
-    attendance: 88,
-    assessmentScore: 82,
-    previousScore: 80,
-    missingAssignments: 0,
-    engagement: "High",
-  },
-  {
-    id: 11,
-    name: "Divyaraj Patidar",
-    rollNumber: "25223035",
-    branch: "MCA",
-    semester: 3,
-    attendance: 59,
-    assessmentScore: 49,
-    previousScore: 66,
-    missingAssignments: 3,
-    engagement: "Low",
-  },
-  {
-    id: 12,
-    name: "Garima Kumari",
-    rollNumber: "25223037",
-    branch: "MCA",
-    semester: 3,
-    attendance: 81,
-    assessmentScore: 67,
-    previousScore: 71,
-    missingAssignments: 1,
-    engagement: "Medium",
-  },
-];
-
-
-/* =========================================================
-   RISK ANALYSIS ENGINE
-   ========================================================= */
-
-function calculateRisk(student) {
-  let riskScore = 0;
-  const riskFactors = [];
-
-  // Attendance
-  if (student.attendance < 60) {
-    riskScore += 30;
-    riskFactors.push(`Low Attendance (${student.attendance}%)`);
-  } else if (student.attendance < 75) {
-    riskScore += 15;
-    riskFactors.push(`Moderate Attendance (${student.attendance}%)`);
-  }
-
-  // Assessment performance
-  if (student.assessmentScore < 50) {
-    riskScore += 30;
-    riskFactors.push(`Low Assessment (${student.assessmentScore}%)`);
-  } else if (student.assessmentScore < 65) {
-    riskScore += 15;
-    riskFactors.push(`Moderate Assessment (${student.assessmentScore}%)`);
-  }
-
-  // Missing assignments
-  if (student.missingAssignments >= 3) {
-    riskScore += 20;
-    riskFactors.push(
-      `${student.missingAssignments} Missing Assignments`
-    );
-  } else if (student.missingAssignments >= 1) {
-    riskScore += 10;
-    riskFactors.push(
-      `${student.missingAssignments} Missing Assignment(s)`
-    );
-  }
-
-  // Engagement
-  if (student.engagement === "Low") {
-    riskScore += 15;
-    riskFactors.push("Low Engagement");
-  } else if (student.engagement === "Medium") {
-    riskScore += 5;
-    riskFactors.push("Moderate Engagement");
-  }
-
-  // Performance decline
-  const performanceDrop =
-    student.previousScore - student.assessmentScore;
-
-  if (performanceDrop >= 15) {
-    riskScore += 15;
-    riskFactors.push("Significant Decline in Performance");
-  } else if (performanceDrop >= 8) {
-    riskScore += 8;
-    riskFactors.push("Declining Academic Performance");
-  }
-
-  // Final risk level
-  let riskLevel;
-
-  if (riskScore >= 50) {
-    riskLevel = "High";
-  } else if (riskScore >= 25) {
-    riskLevel = "Medium";
-  } else {
-    riskLevel = "Low";
-  }
-
-  return {
-    ...student,
-    riskScore,
-    riskLevel,
-    riskFactors,
-  };
-}
-
-/* =========================================================
-   INTERVENTION RECOMMENDATION ENGINE
-   ========================================================= */
-
-function getRecommendations(student) {
-  const recommendations = [];
-
-  if (student.attendance < 75) {
-    recommendations.push(
-      "Attendance counselling and student follow-up"
-    );
-  }
-
-  if (student.assessmentScore < 65) {
-    recommendations.push(
-      "Academic mentoring and performance support"
-    );
-  }
-
-  if (student.previousScore - student.assessmentScore >= 8) {
-    recommendations.push(
-      "Review recent decline in academic performance"
-    );
-  }
-
-  if (student.missingAssignments > 0) {
-    recommendations.push(
-      `Follow up on ${student.missingAssignments} missing assignment(s)`
-    );
-  }
-
-  if (student.engagement === "Low") {
-    recommendations.push(
-      "Faculty counselling to improve classroom engagement"
-    );
-  }
-
-  if (recommendations.length === 0) {
-    recommendations.push(
-      "Continue regular academic monitoring"
-    );
-  }
-
-  return recommendations;
-}
-
-
-/* =========================================================
-   INTERVENTION MANAGEMENT
-   ========================================================= */
-
-let interventions = [];
-
-// Create interventions for students who are currently at risk
-function syncInterventions() {
-  const analyzedStudents = students.map(calculateRisk);
-
-  analyzedStudents
-    .filter((student) => student.riskLevel !== "Low")
-    .forEach((student) => {
-      const existingIntervention = interventions.find(
-        (intervention) => intervention.studentId === student.id
-      );
-
-      if (!existingIntervention) {
-        interventions.push({
-          id: interventions.length + 1,
-          studentId: student.id,
-          name: student.name,
-          rollNumber: student.rollNumber,
-          branch: student.branch,
-          riskLevel: student.riskLevel,
-          riskScore: student.riskScore,
-          recommendations: getRecommendations(student),
-          status: "Pending",
-          notes: "",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-      } else {
-        // Update current academic information without
-        // changing the intervention status or notes
-        existingIntervention.name = student.name;
-        existingIntervention.rollNumber = student.rollNumber;
-        existingIntervention.branch = student.branch;
-        existingIntervention.riskLevel = student.riskLevel;
-        existingIntervention.riskScore = student.riskScore;
-        existingIntervention.recommendations =
-          getRecommendations(student);
-      }
-    });
-}
-
-/* =========================================================
-   INTERVENTION STATUS STORAGE
-   ========================================================= */
-
-let interventionStatuses = {};
 
 /* =========================================================
    ROUTES
@@ -363,24 +45,13 @@ app.get("/", (req, res) => {
   });
 });
 
-// Test PostgreSQL database connection
-app.get("/api/test-db", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT NOW()");
-
-    res.json({
-      message: "PostgreSQL connected successfully!",
-      databaseTime: result.rows[0].now,
-    });
-  } catch (error) {
-    console.error("Database connection error:", error);
-
-    res.status(500).json({
-      message: "Database connection failed",
-      error: error.message,
-    });
-  }
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "EduGuard backend",
+  });
 });
+
 
 // Get all students with calculated risk
 app.get("/api/students", async (req, res) => {
@@ -461,17 +132,90 @@ app.get("/api/students/:id", async (req, res) => {
 });
 
 // Add a new student
-app.post("/api/students", (req, res) => {
-  const newStudent = {
-    id: students.length
-      ? Math.max(...students.map((s) => s.id)) + 1
-      : 1,
-    ...req.body,
-  };
+app.post("/api/students", async (req, res) => {
+  const {
+    name,
+    rollNumber,
+    branch,
+    semester,
+    attendance,
+    assessmentScore,
+    previousScore,
+    missingAssignments,
+    engagement,
+  } = req.body;
 
-  students.push(newStudent);
+  if (
+    !name ||
+    !rollNumber ||
+    !branch ||
+    semester === undefined ||
+    attendance === undefined ||
+    assessmentScore === undefined ||
+    previousScore === undefined ||
+    missingAssignments === undefined ||
+    !engagement
+  ) {
+    return res.status(400).json({
+      message: "All student and academic fields are required",
+    });
+  }
 
-  res.status(201).json(calculateRisk(newStudent));
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const studentResult = await client.query(
+      `
+      INSERT INTO students (name, roll_number, branch, semester)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, name, roll_number, branch, semester;
+      `,
+      [name, rollNumber, branch, semester]
+    );
+
+    const student = studentResult.rows[0];
+
+    await client.query(
+      `
+      INSERT INTO academic_records (
+        student_id,
+        attendance,
+        assessment_score,
+        previous_score,
+        missing_assignments,
+        engagement
+      )
+      VALUES ($1, $2, $3, $4, $5, $6);
+      `,
+      [
+        student.id,
+        attendance,
+        assessmentScore,
+        previousScore,
+        missingAssignments,
+        engagement,
+      ]
+    );
+
+    await client.query("COMMIT");
+
+    res.status(201).json({
+      message: "Student created successfully",
+      student,
+    });
+  } catch (error) {
+    await client.query("ROLLBACK");
+
+    console.error("Error creating student:", error);
+
+    res.status(500).json({
+      message: "Failed to create student",
+    });
+  } finally {
+    client.release();
+  }
 });
 
 // Update a student
@@ -620,47 +364,85 @@ app.put("/api/students/:id", async (req, res) => {
 });
 
 // Delete a student
-app.delete("/api/students/:id", (req, res) => {
-  const studentIndex = students.findIndex(
-    (s) => s.id === Number(req.params.id)
-  );
+app.delete("/api/students/:id", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      DELETE FROM students
+      WHERE id = $1
+      RETURNING id;
+      `,
+      [req.params.id]
+    );
 
-  if (studentIndex === -1) {
-    return res.status(404).json({
-      message: "Student not found",
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "Student not found",
+      });
+    }
+
+    res.json({
+      message: "Student deleted successfully",
+      studentId: result.rows[0].id,
+    });
+  } catch (error) {
+    console.error("Error deleting student:", error);
+
+    res.status(500).json({
+      message: "Failed to delete student",
     });
   }
-
-  students.splice(studentIndex, 1);
-
-  res.json({
-    message: "Student deleted successfully",
-  });
 });
 
 // Risk analysis summary
-app.get("/api/risk-analysis", (req, res) => {
-  const analyzedStudents = students.map(calculateRisk);
+app.get("/api/risk-analysis", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        s.id,
+        s.name,
+        s.roll_number AS "rollNumber",
+        s.branch,
+        s.semester,
+        ar.attendance,
+        ar.assessment_score AS "assessmentScore",
+        ar.previous_score AS "previousScore",
+        ar.missing_assignments AS "missingAssignments",
+        ar.engagement
+      FROM students s
+      JOIN academic_records ar
+        ON s.id = ar.student_id
+      ORDER BY s.id;
+    `);
 
-  const highRisk = analyzedStudents.filter(
-    (student) => student.riskLevel === "High"
-  );
+    const analyzedStudents = result.rows.map(calculateRisk);
 
-  const mediumRisk = analyzedStudents.filter(
-    (student) => student.riskLevel === "Medium"
-  );
+    const highRisk = analyzedStudents.filter(
+      (student) => student.riskLevel === "High"
+    );
 
-  const lowRisk = analyzedStudents.filter(
-    (student) => student.riskLevel === "Low"
-  );
+    const mediumRisk = analyzedStudents.filter(
+      (student) => student.riskLevel === "Medium"
+    );
 
-  res.json({
-    totalStudents: analyzedStudents.length,
-    highRisk: highRisk.length,
-    mediumRisk: mediumRisk.length,
-    lowRisk: lowRisk.length,
-    students: analyzedStudents,
-  });
+    const lowRisk = analyzedStudents.filter(
+      (student) => student.riskLevel === "Low"
+    );
+
+    res.json({
+      totalStudents: analyzedStudents.length,
+      highRisk: highRisk.length,
+      mediumRisk: mediumRisk.length,
+      lowRisk: lowRisk.length,
+      students: analyzedStudents,
+    });
+  } catch (error) {
+    console.error("Error fetching risk analysis:", error);
+
+    res.status(500).json({
+      message: "Failed to fetch risk analysis",
+    });
+  }
 });
 
 // Get intervention data
@@ -781,81 +563,83 @@ app.patch(
 );
 
 // Get intervention summary
-app.get("/api/interventions/summary/counts", (req, res) => {
-  syncInterventions();
+app.get("/api/interventions/summary/counts", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE status = 'Pending') AS pending,
+        COUNT(*) FILTER (WHERE status = 'In Progress') AS "inProgress",
+        COUNT(*) FILTER (WHERE status = 'Completed') AS completed
+      FROM interventions;
+    `);
 
-  const pending = interventions.filter(
-    (item) => item.status === "Pending"
-  ).length;
+    const summary = result.rows[0];
 
-  const inProgress = interventions.filter(
-    (item) => item.status === "In Progress"
-  ).length;
+    res.json({
+      total: Number(summary.total),
+      pending: Number(summary.pending),
+      inProgress: Number(summary.inProgress),
+      completed: Number(summary.completed),
+    });
+  } catch (error) {
+    console.error("Error fetching intervention summary:", error);
 
-  const completed = interventions.filter(
-    (item) => item.status === "Completed"
-  ).length;
-
-  res.json({
-    total: interventions.length,
-    pending,
-    inProgress,
-    completed,
-  });
-});
-
-// Update intervention data
-app.put("/api/interventions/:studentId/status", (req, res) => {
-  const studentId = Number(req.params.studentId);
-  const { status } = req.body;
-
-  const validStatuses = ["Pending", "In Progress", "Completed"];
-
-  if (!validStatuses.includes(status)) {
-    return res.status(400).json({
-      message: "Invalid intervention status",
+    res.status(500).json({
+      message: "Failed to fetch intervention summary",
     });
   }
-
-  const student = students.find((s) => s.id === studentId);
-
-  if (!student) {
-    return res.status(404).json({
-      message: "Student not found",
-    });
-  }
-
-  interventionStatuses[studentId] = status;
-
-  res.json({
-    message: "Intervention status updated successfully",
-    studentId,
-    status,
-  });
 });
+
 
 // Dashboard API
-app.get("/api/dashboard", (req, res) => {
-  const analyzedStudents = students.map(calculateRisk);
+app.get("/api/dashboard", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        s.id,
+        s.name,
+        s.roll_number AS "rollNumber",
+        s.branch,
+        s.semester,
+        ar.attendance,
+        ar.assessment_score AS "assessmentScore",
+        ar.previous_score AS "previousScore",
+        ar.missing_assignments AS "missingAssignments",
+        ar.engagement
+      FROM students s
+      JOIN academic_records ar
+        ON s.id = ar.student_id
+      ORDER BY s.id;
+    `);
 
-  const highRiskStudents = analyzedStudents.filter(
-    (student) => student.riskLevel === "High"
-  );
+    const analyzedStudents = result.rows.map(calculateRisk);
 
-  const mediumRiskStudents = analyzedStudents.filter(
-    (student) => student.riskLevel === "Medium"
-  );
+    const highRisk = analyzedStudents.filter(
+      (student) => student.riskLevel === "High"
+    ).length;
 
-  const lowRiskStudents = analyzedStudents.filter(
-    (student) => student.riskLevel === "Low"
-  );
+    const mediumRisk = analyzedStudents.filter(
+      (student) => student.riskLevel === "Medium"
+    ).length;
 
-  res.json({
-    totalStudents: analyzedStudents.length,
-    highRisk: highRiskStudents.length,
-    mediumRisk: mediumRiskStudents.length,
-    lowRisk: lowRiskStudents.length,
-  });
+    const lowRisk = analyzedStudents.filter(
+      (student) => student.riskLevel === "Low"
+    ).length;
+
+    res.json({
+      totalStudents: analyzedStudents.length,
+      highRisk,
+      mediumRisk,
+      lowRisk,
+    });
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
+
+    res.status(500).json({
+      message: "Failed to fetch dashboard data",
+    });
+  }
 });
 
 /* =========================================================
